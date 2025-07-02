@@ -13,7 +13,6 @@ import {
   DialogClose
 } from "@/components/ui/dialog"
 import { useFingerprint } from "./FingerPrint";
-import useIsMobile from "@/components/useIsMobile";
 import Playground from "./Playground";
 import LLMTitleSearch from "./LLMTitleSearch";
 import toast from "react-hot-toast";
@@ -38,10 +37,10 @@ export function LLMAggregator({
   const abortControllerRef = useRef(null);
   const waitingRef = useRef(null);
   const inputRef = useRef(null);
-  const isMobile = useIsMobile();
   const [search, setSearch] = useState("");
   const scrollRef = useRef(null);
   const [showPayments, setShowPayments] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [transactions, setTransactions]= useState({transactions: [], valid_dater: new Date()});
     const months = [
         'January', 'February', 'March', 'April', 'May', 'June',
@@ -358,6 +357,16 @@ export function LLMAggregator({
       setHideSideBar(false);
     }
     localStorage.removeItem('chat_id');
+    const checkMobile = () => {
+      const isMobile = window.innerWidth <= 768;
+      setIsMobile(isMobile);
+      setIsTouchDevice('ontouchstart' in window || navigator.maxTouchPoints > 0);
+      setHideSideBar(isMobile);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
   }, [])
 
   useEffect(() => {
