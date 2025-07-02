@@ -60,11 +60,32 @@ export default function BoomAggregator() {
           query: item.search
         });
       })
+      console.log(history);
       setProductHistory(history);
     }).catch((error) => {
       console.error(error);
     });
   }
+  const checkImages = async (products_list) => {
+    const validatedProducts = await Promise.all(
+      products_list.map(async (product) => {
+        const imageExists = await checkImageExists(product.image);
+        return imageExists ? product : null;
+      })
+    );
+    setProducts(validatedProducts.filter(Boolean));
+    setProductType('general');
+    setWaitingAnswer(false);
+  };
+
+   const checkImageExists = (url) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  };
 
   const loadProduct = (query) => {
     if (controllerRef.current) {
@@ -89,10 +110,9 @@ export default function BoomAggregator() {
         if (!response.ok) throw new Error('Fetch error');
         return response.json();
       })
-      .then((response) => {
-        setProducts(response);
-        setProductType('general');
-        setWaitingAnswer(false);
+      .then(async (response) => {
+        checkImages(response);
+        
       })
       .catch((err) => {
         if (err.name === 'AbortError') {
@@ -389,8 +409,8 @@ export default function BoomAggregator() {
             isMobile && <div className=" mt-[20px] text-3xl underline decoration-[#189453] decoration-2 underline-offset-[10px] self-end text-center" style={{ lineHeight: '70px' }}>Discover & Shop anything consumer. Powered by Boom.</div>
           }
         </header>
-          
-        <BoomSearchInput 
+
+        <BoomSearchInput
           searchProduct={searchProduct}
           setCategory={setCategory}
           inputRef={inputRef}
