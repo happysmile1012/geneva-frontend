@@ -28,6 +28,9 @@ function Playground({
         }
     }
     const setVerifyOpen = (index, position) => {
+        const scrollContainer = document.querySelector('.scrollbar-neutral-800');
+        const scrollPosition = scrollContainer.scrollTop;
+
         if (position == 'top') {
             setFilterList(prevList =>
                 prevList.map((item, i) =>
@@ -42,6 +45,9 @@ function Playground({
                 )
             );
         }
+        setTimeout(() => {
+            scrollContainer.scrollTop = scrollPosition;
+        }, 0);
     };
 
     const linkToProduct = (url) => {
