@@ -177,11 +177,13 @@ export function LLMAggregator({
           question
         }]);
       }
+      setSelectedChatId(chat_id);
     }).catch((error) => {
       console.error(error);
       setWaitingAnswer(false);
     });
   }
+
   const getDateString = (iso_date) => {
     const formattedDate = new Date(iso_date).toLocaleDateString('en-US', {
       month: 'long',
