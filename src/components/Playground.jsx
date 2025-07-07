@@ -29,8 +29,7 @@ function Playground({
         }
     }
     const setVerifyOpen = (index, position) => {
-        const scrollContainer = document.querySelector('.scrollbar-neutral-800');
-        const scrollPosition = scrollContainer.scrollTop;
+        let element = document.querySelector(`.verfied-${position}-modal-${index}`);
 
         if (position == 'top') {
             setFilterList(prevList =>
@@ -47,7 +46,9 @@ function Playground({
             );
         }
         setTimeout(() => {
-            scrollContainer.scrollTop = scrollPosition;
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }, 0);
     };
 
@@ -82,7 +83,7 @@ function Playground({
                     return (
                         <div key={index} className="mx-auto flex flex-col flex-1 md:max-w-3xl text-black my-4">
                             {<div className="flex flex-col mx-4 dark:text-white text-xl my-6">
-                                <div className="flex items-center gap-2 mt-6">
+                                <div className={`flex items-center gap-2 mt-6 verfied-top-modal-${index}`}>
                                     <img src="/image/verify.png" alt="verify" className="w-[20]" />
                                     <span className="font-semibold"
                                         style={{ color: theme === "light" ? "black" : "white" }}
@@ -125,7 +126,7 @@ function Playground({
                                     <MarkdownRenderer content={item.text} color={theme} bg={true} />
                                 </div>
                             }
-                            {<div className="flex flex-col mx-4 dark:text-white text-xl">
+                            {<div className={`flex flex-col mx-4 dark:text-white text-xl verfied-bottom-modal-${index}`}>
                                 <div className="flex items-center gap-2 mt-6">
                                     <img src="/image/verify.png" alt="verify" className="w-[20]" />
                                     <span className="font-semibold"
