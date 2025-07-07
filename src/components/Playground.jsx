@@ -5,6 +5,7 @@ import TextInput from "./TextInput";
 import {useRouter} from "next/navigation";
 import Subscribe from "@/components/Subscribe";
 import {  CrossmintProvider, CrossmintCheckoutProvider } from "@crossmint/client-sdk-react-ui";
+import FadeLoader from "react-spinners/FadeLoader";
 function Playground({
     filterList,
     setFilterList,
@@ -13,12 +14,12 @@ function Playground({
     askQuestion,
     inputRef,
     waitingRef,
-    email
+    email,
+    loadingContent
 }) {
 
     const [query, setQuery] = useState('');
     const router = useRouter();
-
     const copyAnswer = async (text) => {
         try {
             await navigator.clipboard.writeText(text);
@@ -54,7 +55,10 @@ function Playground({
         window.open(url, '_blank');
     }
 
-    return <div className={`flex-1 flex flex-col overflow-y-auto`}>
+    return loadingContent ? <div align="center" style={{marginTop: '200px'}}>
+            <FadeLoader loading={loadingContent} height={15} />
+        </div>:
+        <div className={`flex-1 flex flex-col overflow-y-auto`}>
         <div className={`overflow-y-auto scrollbar-neutral-800 ${filterList.length ? 'flex-1' : ''}`}>
             {filterList.map((item, index) => {
                 if (item.type == 'question') {
@@ -84,7 +88,7 @@ function Playground({
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.level == 'Easy' ? 3 : item.level == 'Medium' ? 5 : 7} models</span>
                                     <img src="/image/down.png" alt="down"
-                                        className={`w-[16px] h-[16px] transition-transform duration-200 ${!item.verify_top_open ? 'rotate-x-180' : ''}`}
+                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_top_open ? 'rotate-x-180' : ''}`}
                                         onClick={() => setVerifyOpen(index, 'top')} />
                                     {
                                         <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
@@ -128,7 +132,7 @@ function Playground({
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.level == 'Easy' ? 3 : item.level == 'Medium' ? 5 : 7} models</span>
                                     <img src="/image/down.png" alt="down"
-                                        className={`w-[16px] h-[16px] transition-transform duration-200 ${!item.verify_bottom_open ? 'rotate-x-180' : ''}`}
+                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_bottom_open ? 'rotate-x-180' : ''}`}
                                         onClick={() => setVerifyOpen(index, 'bottom')} />
                                     <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
                                 </div>
@@ -174,7 +178,7 @@ function Playground({
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.status_report.length} models</span>
                                     <img src="/image/down.png" alt="down"
-                                        className={`w-[16px] h-[16px] transition-transform duration-200 ${!item.verify_top_open ? 'rotate-x-180' : ''}`}
+                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_top_open ? 'rotate-x-180' : ''}`}
                                         onClick={() => setVerifyOpen(index, 'top')} />
                                     <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
                                 </div>
@@ -239,7 +243,7 @@ function Playground({
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.status_report.length} models</span>
                                     <img src="/image/down.png" alt="down"
-                                        className={`w-[16px] h-[16px] transition-transform duration-200 ${!item.verify_bottom_open ? 'rotate-x-180' : ''}`}
+                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_bottom_open ? 'rotate-x-180' : ''}`}
                                         onClick={() => setVerifyOpen(index, 'bottom')} />
                                     <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
                                 </div>
@@ -367,7 +371,7 @@ function Playground({
                     )
                 }
             })}
-            {waitingAnswer && <div ref={waitingRef} className="mx-auto flex flex-col flex-1 md:max-w-3xl my-4">
+            {waitingAnswer && <div className="mx-auto flex flex-col flex-1 md:max-w-3xl my-4">
                 <div className="mx-4 py-4 flex text-2xl">
                     <img src="/image/logo.png" alt="logo" className="w-[30] mr-2" />
                     <span style={{ color: theme === "light" ? "dark" : "white" }}>
@@ -411,6 +415,7 @@ function Playground({
                 `}</style>
                 </div>
             </div>}
+            <div ref={waitingRef}></div>
         </div>
         <div className={`flex mx-auto px-3 md:px-4 w-full pb-6 ${filterList.length ? '' : 'flex-1'}`}>
             <div

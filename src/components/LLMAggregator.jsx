@@ -17,11 +17,11 @@ import useIsMobile from "@/components/useIsMobile";
 import Playground from "./Playground";
 import LLMTitleSearch from "./LLMTitleSearch";
 import toast from "react-hot-toast";
-
+import FadeLoader from "react-spinners/FadeLoader";
 
 export function LLMAggregator({
-    email
-                              }) {
+  email
+}) {
   const themes = [
     "dark",
     "light",
@@ -42,11 +42,15 @@ export function LLMAggregator({
   const [search, setSearch] = useState("");
   const scrollRef = useRef(null);
   const [showPayments, setShowPayments] = useState(false);
-  const [transactions, setTransactions]= useState({transactions: [], valid_dater: new Date()});
-    const months = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [loadingContent, setLoadingContent] = useState(false);
+  const [selectedChatId, setSelectedChatId] = useState(0);
+
+  const [transactions, setTransactions] = useState({ transactions: [], valid_dater: new Date() });
+  const months = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
 
   const askQuestion = (query) => {
     let chat_id = localStorage.getItem('chat_id');
@@ -74,7 +78,7 @@ export function LLMAggregator({
       body: JSON.stringify({ user_id: fingerprint, chat_id: chat_id, question: question, history: history })
     }).then((response) => {
       if (!response.ok) {
-       return false;
+        return false;
       }
       return response.json();
     }).then((response) => {
@@ -170,7 +174,7 @@ export function LLMAggregator({
           user_id: fingerprint,
           type: 'question',
           chat_id: chat_id,
-          text: question
+          question
         }]);
       }
     }).catch((error) => {
@@ -179,28 +183,28 @@ export function LLMAggregator({
     });
   }
   const getDateString = (iso_date) => {
-      const formattedDate = new Date(iso_date).toLocaleDateString('en-US', {
-          month: 'long',
-          day: 'numeric',
-          year: 'numeric'
-      });
-      return formattedDate;
+    const formattedDate = new Date(iso_date).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric'
+    });
+    return formattedDate;
   }
   const getOffsetDate = (iso_date) => {
-// Your valid date (from server)
-      const text = "";
-      const validDate = new Date(iso_date);
-      const currentDate = new Date();
-      const timeDifference = validDate - currentDate;
-      const remainingDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+    // Your valid date (from server)
+    const text = "";
+    const validDate = new Date(iso_date);
+    const currentDate = new Date();
+    const timeDifference = validDate - currentDate;
+    const remainingDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
 
-      if (remainingDays > 0) {
-          return `Remaining: ${remainingDays} day(s)`;
-      } else if (remainingDays === 0) {
-          return 'Today is the last day';
-      } else {
-          return "You were limitted";
-      }
+    if (remainingDays > 0) {
+      return `Remaining: ${remainingDays} day(s)`;
+    } else if (remainingDays === 0) {
+      return 'Today is the last day';
+    } else {
+      return "You were limitted";
+    }
   }
   const changeTheme = () => {
     // setTheme(theme === 'dark' ? 'light' : 'dark')
@@ -208,21 +212,22 @@ export function LLMAggregator({
     setTheme(themes[(themeIndex + 1) % 3]);
   }
 
-  const loadChatHistory = async () => {
-    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat-history/list`, {
+  const loadChatContents = async (chat_id) => {
+    setLoadingContent(true);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat-history/chat-content`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ user_id: fingerprint, })
+      body: JSON.stringify({ chat_id })
     }).then((response) => {
       if (!response.ok) {
         return false;
       }
       return response.json();
     }).then((response) => {
-      console.log(response);
       const history = [];
+      setLoadingContent(false);
       response.map((item) => {
         history.push({
           user_id: item.user_id,
@@ -273,24 +278,44 @@ export function LLMAggregator({
           });
         }
       })
+      setFilterList(history);
+    })
+  }
+
+  const loadChatHistory = async () => {
+    setLoadingHistory(true);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat-history/list`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: fingerprint, })
+    }).then((response) => {
+      if (!response.ok) {
+        return false;
+      }
+      return response.json();
+    }).then(async (response) => {
+      const history = response;
       setChatHistory(history);
-      console.log(history);
       if (history.length > 0) {
         const lastChat = Math.max(...history.map(chat => chat.chat_id));
-        const filteredList = history
-          .filter(chat => chat.chat_id == lastChat)
-          .map(chat => ({
-            ...chat,
-            verify_top_open: false,
-            verify_bottom_open: false
-          }));
-        setFilterList(filteredList)
+        await loadChatContents(lastChat);
         const list = history.filter(
           (chat, index, self) =>
             self.findIndex(c => c.chat_id === chat.chat_id) === index
         );
         setChatList(list);
+        setChatHistory(history);
         localStorage.setItem('chat_id', lastChat);
+        setLoadingHistory(false);
+        setSelectedChatId(lastChat);
+        setTimeout(function () {
+          scrollRef.current.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior: 'smooth',
+          });
+        }, 500)
       } else {
         localStorage.removeItem('chat_id');
       }
@@ -299,16 +324,18 @@ export function LLMAggregator({
     });
   }
 
-  const changeChatId = (id) => {
+  const changeChatId = async (id) => {
     setShowPayments(false);
-    const filteredList = chatHistory
-      .filter(chat => chat.chat_id == id)
-      .map(chat => ({
-        ...chat,
-        verify_top_open: false,
-        verify_bottom_open: false
-      }));
-    setFilterList(filteredList)
+    // const filteredList = chatHistory
+    //   .filter(chat => chat.chat_id == id)
+    //   .map(chat => ({
+    //     ...chat,
+    //     verify_top_open: false,
+    //     verify_bottom_open: false
+    //   }));
+    // setFilterList(filteredList)
+    setSelectedChatId(id);
+    await loadChatContents(id);
     localStorage.setItem('chat_id', id);
     const width = window.innerWidth;
     if (width < 640) {
@@ -319,7 +346,7 @@ export function LLMAggregator({
   const addNewChatId = () => {
     setFilterList([]);
     const textarea = inputRef.current;
-    if(textarea) {
+    if (textarea) {
       textarea.style.height = 'auto';        // Reset height
       textarea.style.height = '44px';
     }
@@ -328,29 +355,28 @@ export function LLMAggregator({
   }
 
   const deleteChatHistory = (id, user_id) => {
-    if (user_id == fingerprint) {
-      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat-history/delete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: fingerprint, chat_id: id })
-      }).then((response) => {
-        if (!response.ok) {
-          return false;
-        }
-        return response.json();
-      }).then((response) => {
-        localStorage.removeItem('chat_id');
-        setChatHistory((prevList) => prevList.filter(chat => chat.chat_id != id));
-        setChatList((prevList) => prevList.filter(chat => chat.chat_id != id));
-        setFilterList([]);
-      }).catch((error) => {
-        console.error(error);
-      })
-    } else {
-      toast.error(`You don't have permission`);
-    }
+    setLoadingHistory(true);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/chat-history/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: fingerprint, chat_id: id })
+    }).then((response) => {
+      if (!response.ok) {
+        return false;
+      }
+      return response.json();
+    }).then((response) => {
+      localStorage.removeItem('chat_id');
+      setChatHistory((prevList) => prevList.filter(chat => chat.chat_id != id));
+      setChatList((prevList) => prevList.filter(chat => chat.chat_id != id));
+      setFilterList([]);
+      setLoadingHistory(false);
+      setSelectedChatId(-1);
+    }).catch((error) => {
+      console.error(error);
+    })
   }
   useEffect(() => {
     const width = window.innerWidth;
@@ -371,26 +397,26 @@ export function LLMAggregator({
   }, [filterList])
 
   useEffect(() => {
-      if(showPayments) {
-        fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/transaction-history`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ user_id: fingerprint})
-        }).then((response) => {
-          if (!response.ok) {
-            return false;
-          }
-          return response.json();
-        }).then((response) => {
-          if(response.transactions) {
-            setTransactions(response);
-          }
-        }).catch((error) => {
-          console.error(error);
-        })
-      }
+    if (showPayments) {
+      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/auth/transaction-history`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: fingerprint })
+      }).then((response) => {
+        if (!response.ok) {
+          return false;
+        }
+        return response.json();
+      }).then((response) => {
+        if (response.transactions) {
+          setTransactions(response);
+        }
+      }).catch((error) => {
+        console.error(error);
+      })
+    }
   }, [showPayments])
 
   return (
@@ -428,18 +454,18 @@ export function LLMAggregator({
           <img src="/image/editor.svg" alt="x" className="w-[24] cursor-pointer" onClick={addNewChatId} />
           <img src="/image/payments.png" alt="x" className="w-[50] cursor-pointer" onClick={() => setShowPayments(true)} />
           <img src="/image/llm-icons.png" alt="x" className="w-[80%] cursor-pointer" onClick={addNewChatId} />
-          
+
           <div align="center">
-          <img src="/image/bottom-button.png" className="w-[50px] cursor-pointer"
-            onClick={() => {
-              if (scrollRef.current) {
-                scrollRef.current.scrollTo({
-                  top: scrollRef.current.scrollHeight,
-                  behavior: 'smooth',
-                });
-              }
-            }} />
-        </div>
+            <img src="/image/bottom-button.png" className="w-[50px] cursor-pointer"
+              onClick={() => {
+                if (scrollRef.current) {
+                  scrollRef.current.scrollTo({
+                    top: scrollRef.current.scrollHeight,
+                    behavior: 'smooth',
+                  });
+                }
+              }} />
+          </div>
           <div className="w-[100%]" align="center">
             <LLMTitleSearch
               setSearch={setSearch}
@@ -449,70 +475,81 @@ export function LLMAggregator({
             </div>
           </div>
         </div>
-        <div className="w-full px-4 gap-2 flex flex-col mt-5">
-          {chatList.filter((item) => item.text.indexOf(search) > -1).map((item, index) => {
-            return (
-              <div key={index} className="relative group w-full">
-                <Button
-                  key={index}
-                  className="w-full bg-[#DCEAF7] hover:bg-[#DCEAF7] text-black overflow-hidden"
-                  onClick={() => changeChatId(item.chat_id)}
-                >
-                  <span className="block text-center text-xl truncate mx-5">
-                    {item.text}
-                  </span>
-                </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <img
-                      src="/image/trash.svg"
-                      onClick={(e) => e.stopPropagation()} // Prevent other click handlers
-                      className="absolute w-[14px] right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-                    />
-                  </DialogTrigger>
-                  <DialogContent
-                    className="bg-[length:100%_100%] bg-no-repeat bg-center border-none shadow-[10px_1px_20px_1px_black] px-0 rounded-4xl [&>button]:hidden font-goudy text-xl ring-0">
-                    <DialogHeader className="items-center">
-                      <DialogTitle className="text-xl">delete chat?</DialogTitle>
-                      <hr className="mt-4 !border-[#D4F8E5] w-full" />
-                    </DialogHeader>
-                    <div className="justify-self-center">
-                      this will delete the conversation & history
-                    </div>
-                    <DialogFooter className="gap-20 flex !justify-center">
-                      <DialogClose asChild>
-                        <div
-                          className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer">
-                          back
+        {
+          loadingHistory ? <div align="center">
+            <FadeLoader loading={loadingHistory} height={15} />
+          </div> :
+            <div className="w-full px-4 gap-2 flex flex-col mt-5">
+              {chatList.filter((item) => item.question.indexOf(search) > -1).map((item, index) => {
+                return (
+                  <div key={index} className="relative group w-full">
+                    <Button
+                      key={index}
+                      className={`w-full  hover:bg-[#98c0e5] text-black overflow-hidden cursor-pointer`}
+                      style={{
+                        background: item.chat_id == selectedChatId ? "#98c0e5" : "#DCEAF7"
+                      }}
+                      onClick={() => changeChatId(item.chat_id)}
+                    >
+                      <span className="block text-center text-xl truncate mx-5">
+                        {item.question}
+                      </span>
+                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <img
+                          src="/image/trash.svg"
+                          onClick={(e) => e.stopPropagation()} // Prevent other click handlers
+                          className="absolute w-[14px] right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                        />
+                      </DialogTrigger>
+                      <DialogContent
+                        className="bg-[url('/image/background-light.png')] dark:bg-[url('/image/background-dark.png')] bg-[length:100%_100%] bg-no-repeat bg-center border-none shadow-[10px_1px_20px_1px_black] px-0 rounded-4xl [&>button]:hidden font-goudy text-xl ring-0">
+                        <DialogHeader className="items-center">
+                          <DialogTitle className="text-xl">delete chat?</DialogTitle>
+                          <hr className="mt-4 !border-[#D4F8E5] w-full" />
+                        </DialogHeader>
+                        <div className="justify-self-center">
+                          this will delete the conversation & history
                         </div>
-                      </DialogClose>
-                      <DialogClose>
-                        <div
-                          className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer"
-                          onClick={() => deleteChatHistory(item.chat_id, item.user_id)}>
-                          yes
-                        </div>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )
-          })}
-        </div>
+                        <DialogFooter className="gap-20 flex !justify-center">
+                          <DialogClose asChild>
+                            <div
+                              className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer">
+                              back
+                            </div>
+                          </DialogClose>
+                          <DialogClose>
+                            <div
+                              className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer"
+                              onClick={() => deleteChatHistory(item.chat_id, item.user_id)}>
+                              yes
+                            </div>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )
+              })}
+              {
+                chatList.filter((item) => item.question.indexOf(search) > -1).length == 0 &&
+                <div align="center" className="text-lg">There is no chat history.</div>
+              }
+            </div>
+        }
         <div align="center">
-            <img src="/image/top-button.png" className="w-[40px] cursor-pointer"
-              onClick={() => {
-                if (scrollRef.current) {
-                  scrollRef.current.scrollTo({
-                    top: 0,
-                    behavior: 'smooth',
-                  });
-                }
-              }}
-            />
-          </div>
-
+          <img src="/image/top-button.png" className="w-[40px] cursor-pointer"
+            onClick={() => {
+              if (scrollRef.current) {
+                scrollRef.current.scrollTo({
+                  top: 0,
+                  behavior: 'smooth',
+                });
+              }
+            }}
+          />
+        </div>
       </div>
       <div
         style={{
@@ -553,57 +590,58 @@ export function LLMAggregator({
         </header>
         {
           showPayments ?
-              <div className="flex flex-col items-center justify-center">
+            <div className="flex flex-col items-center justify-center">
 
-                <div className="mx-auto flex flex-col flex-1 md:max-w-6xl text-black my-4 w-full">
-                  <div className="mx-4 px-4 py-4 shadow-[10px_-10px_black] bg-[#FEFBF0] rounded-[30px] mt-[50px]">
-                    <div className="font-bold text-[25px] text-blue-300" align={"right"}>
-                      {
-                        getOffsetDate(transactions.valid_date)
-                      }
-                    </div>
-                      <table width="100%" className={"mt-[20px]"}>
-                        <thead>
-                          <tr className="text-[25px] border-b border-black">
-                            <th width="20%" align={"center"}>
-                              Date
-                            </th>
-                            <th width="20%" align={"center"}>
-                              Status
-                            </th>
-                            <th width="50%" align={"center"}>
-                              Access Key Linked
-                            </th>
-                            <th width="10%" align={"right"}>
-                              Amount
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                        {
-                          transactions["transactions"].map((item, index) =>
-                            <tr key={index} className="pb-2 pt-2">
-                              <td align={"center"}>{getDateString(item.created_at)}</td>
-                              <td className="text-[20px] font-500" align="center">{item.status}</td>
-                              <td className="text-[20px] font-500" align="center">{item.access_key}</td>
-                              <td className="text-[23px] font-500" align="center">${item.amount}</td>
-                            </tr>
-                          )
-                        }
-                        </tbody>
-                      </table>
+              <div className="mx-auto flex flex-col flex-1 md:max-w-6xl text-black my-4 w-full">
+                <div className="mx-4 px-4 py-4 shadow-[10px_-10px_black] bg-[#FEFBF0] rounded-[30px] mt-[50px]">
+                  <div className="font-bold text-[25px] text-blue-300" align={"right"}>
+                    {
+                      getOffsetDate(transactions.valid_date)
+                    }
                   </div>
+                  <table width="100%" className={"mt-[20px]"}>
+                    <thead>
+                      <tr className="text-[25px] border-b border-black">
+                        <th width="20%" align={"center"}>
+                          Date
+                        </th>
+                        <th width="20%" align={"center"}>
+                          Status
+                        </th>
+                        <th width="50%" align={"center"}>
+                          Access Key Linked
+                        </th>
+                        <th width="10%" align={"right"}>
+                          Amount
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {
+                        transactions["transactions"].map((item, index) =>
+                          <tr key={index} className="pb-2 pt-2">
+                            <td align={"center"}>{getDateString(item.created_at)}</td>
+                            <td className="text-[20px] font-500" align="center">{item.status}</td>
+                            <td className="text-[20px] font-500" align="center">{item.access_key}</td>
+                            <td className="text-[23px] font-500" align="center">${item.amount}</td>
+                          </tr>
+                        )
+                      }
+                    </tbody>
+                  </table>
                 </div>
-              </div>:
-              <Playground email={email}
-                theme={theme}
-                filterList={filterList}
-                waitingAnswer={waitingAnswer}
-                setFilterList={setFilterList}
-                inputRef={inputRef}
-                askQuestion={askQuestion}
-                waitingRef={waitingRef}
-              />
+              </div>
+            </div> :
+            <Playground email={email}
+              theme={theme}
+              filterList={filterList}
+              waitingAnswer={waitingAnswer}
+              setFilterList={setFilterList}
+              inputRef={inputRef}
+              askQuestion={askQuestion}
+              loadingContent={loadingContent}
+              waitingRef={waitingRef}
+            />
         }
       </div>
     </div>

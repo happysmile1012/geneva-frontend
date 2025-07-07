@@ -17,6 +17,8 @@ import { useFingerprint } from "./FingerPrint";
 import toast from "react-hot-toast";
 import useIsMobile from "./useIsMobile";
 import BoomSearchInput from "./BoomSearchInput";
+import FadeLoader from "react-spinners/FadeLoader";
+
 
 export default function BoomAggregator() {
   const fingerprint = useFingerprint();
@@ -36,8 +38,13 @@ export default function BoomAggregator() {
   const scrollRef = useRef(null);
   const isMobile = useIsMobile();
   const [iconOffset, setIconOffset] = useState(8);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [selectedHistoryId, setSelectedHistoryId] = useState(0);
+  const [loadingContent, setLoadingContent] = useState(false);
 
   const loadProductHistory = () => {
+    if (!fingerprint) return;
+    setLoadingHistory(true);
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/product-history/list`, {
       method: 'POST',
       headers: {
@@ -50,20 +57,59 @@ export default function BoomAggregator() {
       }
       return response.json();
     }).then((response) => {
-      const history = [];
-      response.map((item) => {
-        history.push({
-          user_id: item.user_id,
-          id: item.id,
-          products: JSON.parse(item.products),
-          product_type: item.product_type,
-          query: item.search
-        });
-      })
+      let history = [];
+      history = response;
+      // response.map((item) => {
+      //   history.push({
+      //     user_id: item.user_id,
+      //     id: item.id,
+      //     products: JSON.parse(item.products),
+      //     product_type: item.product_type,
+      //     query: item.search
+      //   });
+      // })
       setProductHistory(history);
+      setLoadingHistory(false);
+      setTimeout(function () {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: 'smooth',
+        });
+      }, 500)
     }).catch((error) => {
       console.error(error);
     });
+  }
+
+  const loadProductContent = async (id) => {
+    setLoadingContent(true);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/product-history/product-content`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id }),
+    })
+      .then((response) => {
+        if (!response.ok) throw new Error('Fetch error');
+        return response.json();
+      })
+      .then(async (response) => {
+        try {
+          await checkImages(JSON.parse(response));
+          setLoadingContent(false);
+        } catch (e) {
+
+        }
+      })
+      .catch((err) => {
+        if (err.name === 'AbortError') {
+          console.log('Previous fetch aborted');
+        } else {
+          console.error(err);
+          setWaitingAnswer(false);
+        }
+      })
   }
 
   const loadProduct = (query) => {
@@ -90,9 +136,7 @@ export default function BoomAggregator() {
         return response.json();
       })
       .then((response) => {
-        setProducts(response);
-        setProductType('general');
-        setWaitingAnswer(false);
+        checkImages(response);
       })
       .catch((err) => {
         if (err.name === 'AbortError') {
@@ -152,17 +196,20 @@ export default function BoomAggregator() {
     window.open(url, '_blank');
   }
 
-  const changeHistory = (index) => {
+  const changeHistory = async (index) => {
     if (typeof window == "undefined") {
       return;
     }
+    setSelectedHistoryId(index);
     if (controllerRef.current) {
       controllerRef.current.abort();
       controllerRef.current = null; // clear it
       setWaitingAnswer(false);
     }
     setProductType(productHistory[index].product_type);
-    setProducts(productHistory[index].products);
+    // setProducts(productHistory[index].products);
+
+    await loadProductContent(productHistory[index].id);
     setQuery(productHistory[index].query);
     setCategory('');
     const width = window.innerWidth;
@@ -172,29 +219,28 @@ export default function BoomAggregator() {
   }
 
   const deleteHistory = (index, user_id) => {
-    if (user_id == fingerprint) {
-      fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/product-history/delete`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ user_id: fingerprint, id: index })
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error('error');
-        }
-        return response.json();
-      }).then((response) => {
-        setProductHistory((prevList) => prevList.filter(item => item.id != index));
-        setQuery('');
-        setProductType('');
-        setProducts([]);
-      }).catch((error) => {
-        console.error(error);
-      })
-    } else {
-      toast.error(`You don't have permission`);
-    }
+    setLoadingHistory(true);
+    fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/product-history/delete`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ user_id: fingerprint, id: index })
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error('error');
+      }
+      return response.json();
+    }).then((response) => {
+      setProductHistory((prevList) => prevList.filter(item => item.id != index));
+      setQuery('');
+      setProductType('');
+      setProducts([]);
+      setLoadingHistory(false);
+      setSelectedHistoryId(-1);
+    }).catch((error) => {
+      console.error(error);
+    })
   }
 
   const searchNew = () => {
@@ -211,6 +257,28 @@ export default function BoomAggregator() {
     }
     router.back();
   }
+
+  const checkImages = async (products_list) => {
+    const validatedProducts = await Promise.all(
+      products_list.map(async (product) => {
+        const imageExists = await checkImageExists(product.image);
+        return imageExists ? product : null;
+      })
+    );
+    setProducts(validatedProducts.filter(Boolean));
+    setProductType('general');
+    setWaitingAnswer(false);
+  };
+
+  const checkImageExists = (url) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => resolve(true);
+      img.onerror = () => resolve(false);
+      img.src = url;
+    });
+  };
+
   useEffect(() => {
     const width = window.innerWidth;
     if (width > 640) {
@@ -294,55 +362,66 @@ export default function BoomAggregator() {
             </div>
           </div>
         </div>
-        <div className="w-full px-4 gap-2 flex flex-col mt-5"
-
-        >
-          {Array.isArray(productHistory) && productHistory.filter((item) => item.query.indexOf(search) > -1).map((item, index) => {
-            return (
-              <div key={index} className="relative group w-full">
-                <Button
-                  key={index}
-                  className="w-full bg-[#DCEAF7] hover:bg-[#DCEAF7] text-black overflow-hidden"
-                  onClick={() => changeHistory(index)}
-                >
-                  <span className="block text-center text-xl truncate mx-5">
-                    {item.query}
-                  </span>
-                </Button>
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <img
-                      src="/image/trash.svg"
-                      onClick={(e) => e.stopPropagation()} // Prevent other click handlers
-                      className="absolute w-[14px] right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
-                    />
-                  </DialogTrigger>
-                  <DialogContent className="bg-[url('/image/background-light.png')] dark:bg-[url('/image/background-dark.png')] bg-[length:100%_100%] bg-no-repeat bg-center border-none shadow-[10px_1px_20px_1px_black] px-0 rounded-4xl [&>button]:hidden font-goudy text-xl ring-0">
-                    <DialogHeader className="items-center">
-                      <DialogTitle className="text-xl">delete history?</DialogTitle>
-                      <hr className="mt-4 !border-[#D4F8E5] w-full" />
-                    </DialogHeader>
-                    <div className="justify-self-center">
-                      this will delete the conversation & history
-                    </div>
-                    <DialogFooter className="gap-20 flex !justify-center">
-                      <DialogClose asChild>
-                        <div className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer">
-                          back
+        {
+          loadingHistory ? <div align="center">
+            <FadeLoader loading={loadingHistory} height={15} />
+          </div> :
+            <div className="w-full px-4 gap-2 flex flex-col mt-5"
+            >
+              {Array.isArray(productHistory) && productHistory.filter((item) => item.query.indexOf(search) > -1).map((item, index) => {
+                return (
+                  <div key={index} className="relative group w-full">
+                    <Button
+                      key={index}
+                      className={`w-full hover:bg-[#98c0e5] text-black overflow-hidden cursor-pointer`}
+                      style={{
+                        background: item.chat_id == selectedHistoryId ? "#98c0e5" : "#DCEAF7"
+                      }}
+                      onClick={() => changeHistory(index)}
+                    >
+                      <span className="block text-center text-xl truncate mx-5">
+                        {item.query}
+                      </span>
+                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <img
+                          src="/image/trash.svg"
+                          onClick={(e) => e.stopPropagation()} // Prevent other click handlers
+                          className="absolute w-[14px] right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 cursor-pointer"
+                        />
+                      </DialogTrigger>
+                      <DialogContent className="bg-[url('/image/background-light.png')] dark:bg-[url('/image/background-dark.png')] bg-[length:100%_100%] bg-no-repeat bg-center border-none shadow-[10px_1px_20px_1px_black] px-0 rounded-4xl [&>button]:hidden font-goudy text-xl ring-0">
+                        <DialogHeader className="items-center">
+                          <DialogTitle className="text-xl">delete history?</DialogTitle>
+                          <hr className="mt-4 !border-[#D4F8E5] w-full" />
+                        </DialogHeader>
+                        <div className="justify-self-center">
+                          this will delete the conversation & history
                         </div>
-                      </DialogClose>
-                      <DialogClose>
-                        <div className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer" onClick={() => deleteHistory(item.id, item.user_id)}>
-                          yes
-                        </div>
-                      </DialogClose>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </div>
-            )
-          })}
-        </div>
+                        <DialogFooter className="gap-20 flex !justify-center">
+                          <DialogClose asChild>
+                            <div className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer">
+                              back
+                            </div>
+                          </DialogClose>
+                          <DialogClose>
+                            <div className="bg-white text-black w-[60px] hover:bg-black hover:text-white text-center rounded-sm py-1 shadow-[2px_2px_2px_black] cursor-pointer" onClick={() => deleteHistory(item.id, item.user_id)}>
+                              yes
+                            </div>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                )
+              })}
+              {
+                Array.isArray(productHistory) && productHistory.filter((item) => item.query.indexOf(search) > -1).length == 0 &&
+                <div align="center" className="text-lg">There is no search history.</div>
+              }
+            </div>
+        }
         <div align="center">
           <img src="/image/top-button.png" className="w-[40px] cursor-pointer"
             onClick={() => {
@@ -389,8 +468,8 @@ export default function BoomAggregator() {
             isMobile && <div className=" mt-[20px] text-3xl underline decoration-[#189453] decoration-2 underline-offset-[10px] self-end text-center" style={{ lineHeight: '70px' }}>Discover & Shop anything consumer. Powered by Boom.</div>
           }
         </header>
-          
-        <BoomSearchInput 
+
+        <BoomSearchInput
           searchProduct={searchProduct}
           setCategory={setCategory}
           inputRef={inputRef}
@@ -451,70 +530,49 @@ export default function BoomAggregator() {
             </div>
           </div>
         }
-        <div className="w-full  p-8">
-          {productType === 'specific' && Array.isArray(products) && products.length > 0 && (
-            <>
-              <div className="text-2xl">
-                Best match for you:
-              </div>
-              <div className="w-full flex justify-center mb-6 mt-4">
-                <ProductSlider
-                  linkToProduct={linkToProduct}
-                  image={products[0].image}
-                  thumbnails={products[0].thumbnails}
-                  url={products[0].url}
-                  price={products[0].price}
-                />
-                {/*<div*/}
-                {/*  className="bg-white w-[200px] shadow-[10px_10px_20px_1px_black] rounded-[20px] overflow-hidden flex flex-col items-center cursor-pointer"*/}
-                {/*  onClick={() => linkToProduct(products[0].url)}*/}
-                {/*>*/}
-                {/*  <div className="flex justify-center w-full">*/}
-                {/*    <img*/}
-                {/*      src={products[0].image}*/}
-                {/*      alt="product"*/}
-                {/*      className="max-w-[200px] max-h-[200px] pt-3"*/}
-                {/*    />*/}
-                {/*  </div>*/}
-                {/*  <div className="text-xl py-3 mb-0 mt-auto pl-3 w-full font-aptos">{products[0].price}</div>*/}
-                {/*</div>*/}
-              </div>
-              <div className="text-2xl mb-4">
-                Alternatives to choose from:
-              </div>
-            </>
-          )}
+        {
+          loadingContent ? <div align="center" style={{ marginTop: '200px' }}>
+            <FadeLoader loading={loadingContent} height={15} />
+          </div> :
+            <div className="w-full  p-8">
+              {productType === 'specific' && Array.isArray(products) && products.length > 0 && (
+                <>
+                  <div className="text-2xl">
+                    Best match for you:
+                  </div>
+                  <div className="w-full flex justify-center mb-6 mt-4">
+                    <ProductSlider
+                      linkToProduct={linkToProduct}
+                      image={products[0].image}
+                      thumbnails={products[0].thumbnails}
+                      url={products[0].url}
+                      price={products[0].price}
+                    />
+                  </div>
+                  <div className="text-2xl mb-4">
+                    Alternatives to choose from:
+                  </div>
+                </>
+              )}
 
-          <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center">
-            {Array.isArray(products) && (
-              (productType === 'specific' ? products.slice(1) : products)
-                .map((item, index) => (
-                  <ProductSlider
-                    key={index}
-                    linkToProduct={linkToProduct}
-                    image={item.image}
-                    thumbnails={item.thumbnails}
-                    url={item.url}
-                    price={item.price}
-                  />
-                  // <div
-                  //   key={index}
-                  //   className="bg-white w-[200px] shadow-[10px_10px_20px_1px_black] rounded-[20px] overflow-hidden flex flex-col items-center cursor-pointer"
-                  //   onClick={() => linkToProduct(item.url)}
-                  // >
-                  //   <div className="flex justify-center w-full">
-                  //     <img
-                  //       src={item.image}
-                  //       alt="product"
-                  //       className="max-w-[200px] max-h-[200px] pt-3"
-                  //     />
-                  //   </div>
-                  //   <div className="text-xl py-3 mb-0 mt-auto pl-3 w-full font-aptos">{item.price}</div>
-                  // </div>
-                ))
-            )}
-          </div>
-        </div>
+              <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 justify-items-center">
+                {Array.isArray(products) && (
+                  (productType === 'specific' ? products.slice(1) : products)
+                    .map((item, index) => (
+                      <ProductSlider
+                        key={index}
+                        linkToProduct={linkToProduct}
+                        image={item.image}
+                        thumbnails={item.thumbnails}
+                        url={item.url}
+                        price={item.price}
+                      />
+                    ))
+                )}
+              </div>
+            </div>
+        }
+
       </div>
     </div>
   );
