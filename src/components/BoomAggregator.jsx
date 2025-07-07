@@ -70,12 +70,12 @@ export default function BoomAggregator() {
       // })
       setProductHistory(history);
       setLoadingHistory(false);
-      setTimeout(function () {
-        scrollRef.current.scrollTo({
-          top: scrollRef.current.scrollHeight,
-          behavior: 'smooth',
-        });
-      }, 500)
+      // setTimeout(function () {
+      //   scrollRef.current.scrollTo({
+      //     top: scrollRef.current.scrollHeight,
+      //     behavior: 'smooth',
+      //   });
+      // }, 500)
     }).catch((error) => {
       console.error(error);
     });

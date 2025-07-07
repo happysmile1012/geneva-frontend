@@ -300,22 +300,22 @@ export function LLMAggregator({
       setChatHistory(history);
       if (history.length > 0) {
         const lastChat = Math.max(...history.map(chat => chat.chat_id));
-        await loadChatContents(lastChat);
+        // await loadChatContents(lastChat);
         const list = history.filter(
           (chat, index, self) =>
             self.findIndex(c => c.chat_id === chat.chat_id) === index
         );
         setChatList(list);
         setChatHistory(history);
-        localStorage.setItem('chat_id', lastChat);
+        // localStorage.setItem('chat_id', lastChat);
         setLoadingHistory(false);
-        setSelectedChatId(lastChat);
-        setTimeout(function () {
-          scrollRef.current.scrollTo({
-            top: scrollRef.current.scrollHeight,
-            behavior: 'smooth',
-          });
-        }, 500)
+        // setSelectedChatId(lastChat);
+        // setTimeout(function () {
+        //   scrollRef.current.scrollTo({
+        //     top: scrollRef.current.scrollHeight,
+        //     behavior: 'smooth',
+        //   });
+        // }, 500)
       } else {
         localStorage.removeItem('chat_id');
       }
@@ -647,3 +647,4 @@ export function LLMAggregator({
     </div>
   );
 }
+
