@@ -87,8 +87,8 @@ function Playground({
                                     <span className="font-semibold"
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.level == 'Easy' ? 3 : item.level == 'Medium' ? 5 : 7} models</span>
-                                    <img src="/image/down.png" alt="down"
-                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_top_open ? 'rotate-x-180' : ''}`}
+                                    <img src={`/image/${item.verify_top_open ? "cancel_button" : "down"}.png`} alt="top"
+                                        className={`w-[30px] h-[30px] cursor-pointer`}
                                         onClick={() => setVerifyOpen(index, 'top')} />
                                     {
                                         <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
@@ -131,8 +131,9 @@ function Playground({
                                     <span className="font-semibold"
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.level == 'Easy' ? 3 : item.level == 'Medium' ? 5 : 7} models</span>
-                                    <img src="/image/down.png" alt="down"
-                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_bottom_open ? 'rotate-x-180' : ''}`}
+                                    
+                                    <img src={`/image/${item.verify_bottom_open ? "cancel_button" : "down"}.png`} alt="down"
+                                        className={`w-[30px] h-[30px] cursor-pointer`}
                                         onClick={() => setVerifyOpen(index, 'bottom')} />
                                     <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
                                 </div>
@@ -177,8 +178,8 @@ function Playground({
                                         className="font-semibold"
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.status_report.length} models</span>
-                                    <img src="/image/down.png" alt="down"
-                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_top_open ? 'rotate-x-180' : ''}`}
+                                    <img src={`/image/${item.verify_top_open ? "cancel_button" : "down"}.png`} alt="top"
+                                        className={`w-[30px] h-[30px] cursor-pointer`}
                                         onClick={() => setVerifyOpen(index, 'top')} />
                                     <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
                                 </div>
@@ -242,8 +243,8 @@ function Playground({
                                     <span className="font-semibold"
                                         style={{ color: theme === "light" ? "black" : "white" }}
                                     >Verified by {item.status_report.filter(item => item.status == 'success').length} out of {item.status_report.length} models</span>
-                                    <img src="/image/down.png" alt="down"
-                                        className={`w-[30px] h-[30px] transition-transform duration-200 ${!item.verify_bottom_open ? 'rotate-x-180' : ''}`}
+                                    <img src={`/image/${item.verify_bottom_open ? "cancel_button" : "down"}.png`} alt="top"
+                                        className={`w-[30px] h-[30px] cursor-pointer`}
                                         onClick={() => setVerifyOpen(index, 'bottom')} />
                                     <img src="/image/copy.png" className="w-[20]" onClick={() => copyAnswer(item.text)} />
                                 </div>
