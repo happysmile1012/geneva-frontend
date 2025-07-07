@@ -375,7 +375,7 @@ export default function BoomAggregator() {
                       key={index}
                       className={`w-full hover:bg-[#98c0e5] text-black overflow-hidden cursor-pointer`}
                       style={{
-                        background: item.chat_id == selectedHistoryId ? "#98c0e5" : "#DCEAF7"
+                        background: index == selectedHistoryId ? "#98c0e5" : "#DCEAF7"
                       }}
                       onClick={() => changeHistory(index)}
                     >
