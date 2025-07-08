@@ -310,7 +310,6 @@ export function LLMAggregator({
         setChatList(list);
         setChatHistory(history);
         // localStorage.setItem('chat_id', lastChat);
-        setLoadingHistory(false);
         // setSelectedChatId(lastChat);
         // setTimeout(function () {
         //   scrollRef.current.scrollTo({
@@ -321,6 +320,7 @@ export function LLMAggregator({
       } else {
         localStorage.removeItem('chat_id');
       }
+      setLoadingHistory(false);
     }).catch((error) => {
       console.error(error);
     });
