@@ -395,7 +395,9 @@ export function LLMAggregator({
   }, [fingerprint]);
 
   useEffect(() => {
-    waitingRef.current?.scrollIntoView({ behavior: "smooth" });
+    setTimeout(function() {
+      waitingRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 2000)
   }, [filterList])
 
   useEffect(() => {
