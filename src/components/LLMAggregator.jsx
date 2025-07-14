@@ -83,6 +83,11 @@ export function LLMAggregator({ email }) {
       ...prevList,
       { type: "question", chat_id: chat_id, text: question, level: "question" },
     ]);
+
+    setTimeout(function () {
+      waitingRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 2000);
+
     fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/openai/ask`, {
       method: "POST",
       headers: {
@@ -221,6 +226,9 @@ export function LLMAggregator({ email }) {
             },
           ]);
         }
+        setTimeout(function () {
+          waitingRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 2000);
         setSelectedChatId(chat_id);
       })
       .catch((error) => {
@@ -451,11 +459,9 @@ export function LLMAggregator({ email }) {
     }
   }, [fingerprint]);
 
-  useEffect(() => {
-    setTimeout(function () {
-      waitingRef.current?.scrollIntoView({ behavior: "smooth" });
-    }, 2000);
-  }, [filterList]);
+  // useEffect(() => {
+    
+  // }, [filterList]);
 
   useEffect(() => {
     if (showPayments) {
