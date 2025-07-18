@@ -6,7 +6,6 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check } from "lucide-react"; // Icons for copy 
 import remarkGfm from "remark-gfm";
-import rehypeRaw from "rehype-raw";
 
 const CodeBlock = ({ language, children }) => {
   const [copied, setCopied] = useState(false);
@@ -53,7 +52,6 @@ const MarkdownRenderer = ({ content, color, bg }) => {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeRaw]} // Add this to parse HTML
       components={{
         h1: ({ children }) => <h1 className="text-[45px] font-bold mt-4 mb-2"
             style={{color: color == "light" || bg ? "black" : "white"}}
