@@ -49,7 +49,6 @@ const CodeBlock = ({ language, children }) => {
     </div>
   );
 };
-
 const MarkdownRenderer = ({ content, color, bg }) => {
   return (
     <ReactMarkdown
