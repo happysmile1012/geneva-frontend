@@ -190,7 +190,7 @@ const MarkdownRenderer = ({ content, color, bg }) => {
             props.src.includes("serpapi.com")
           ) {
             return (
-              <div className="image-container-field my-4">
+              <div className="image-container-field py-2">
                 <img
                   src={props.src}
                   alt={props.alt || ""}
