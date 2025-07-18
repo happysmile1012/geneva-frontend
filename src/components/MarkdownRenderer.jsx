@@ -6,6 +6,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check } from "lucide-react"; // Icons for copy
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 const CodeBlock = ({ language, children }) => {
   const [copied, setCopied] = useState(false);
@@ -52,6 +53,7 @@ const MarkdownRenderer = ({ content, color, bg }) => {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeRaw]} // Add this to parse HTML
       components={{
         h1: ({ children }) => (
           <h1
@@ -182,18 +184,31 @@ const MarkdownRenderer = ({ content, color, bg }) => {
           </td>
         ),
         img: ({ node, ...props }) => {
-          if (props.src.includes("serpapi.com")) {
+          // Check if this is a serpapi image container
+          if (
+            typeof props.src === "string" &&
+            props.src.includes("serpapi.com")
+          ) {
             return (
-              <div className="serpapi-image">
-                <iframe src={props.src} className="w-full h-64" />
+              <div className="image-container-field my-4">
+                <img
+                  src={props.src}
+                  alt={props.alt || ""}
+                  className="rounded-shadow-image responsive-img max-w-full h-auto"
+                  style={{ maxHeight: "400px" }}
+                />
+                {props.title && (
+                  <div className="image-caption text-center text-sm mt-2">
+                    {props.title}
+                  </div>
+                )}
               </div>
             );
           }
-          return <img {...props} className="regular-image" />;
         },
         code({ className, children, ...props }) {
           const match = /language-(\w+)/.exec(className || "");
-
+          console.log(match);
           if (match) {
             // Code block with language
             return (
