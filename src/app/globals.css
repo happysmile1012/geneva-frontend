@@ -142,14 +142,14 @@
   float: left;
   width: 300px; 
   margin-right: 30px;
-  height: 270px;
+  height: auto;
 }
 
 .image-container-field img {
   border-radius: 12px;
   box-shadow: 0 20px 30px rgba(0, 0, 0, 0.9);
   width: 300px;
-  height: 200px !important;
+  height: auto;
   transition: transform 0.3s ease;
 }
 
@@ -179,3 +179,11 @@
   display: block;
 }
 
+@media only screen and (max-width: 786px) {
+  .image-container-field {
+    width: 100%;
+  }
+  .image-container-field img {
+    width: 100%;
+  }
+}
