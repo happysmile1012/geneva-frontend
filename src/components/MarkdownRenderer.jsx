@@ -6,6 +6,7 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { Copy, Check } from "lucide-react"; // Icons for copy 
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 const CodeBlock = ({ language, children }) => {
   const [copied, setCopied] = useState(false);
@@ -22,7 +23,10 @@ const CodeBlock = ({ language, children }) => {
   }, [])
 
   return (
-    isClient && <div className="relative bg-[#282C34] text-white rounded-lg overflow-hidden my-4">
+    isClient && children.indexOf("<img") > -1 ? 
+    <div 
+      dangerouslySetInnerHTML={{__html: children}}
+    ></div> : <div className="relative bg-[#282C34] text-white rounded-lg overflow-hidden my-4">
       {/* Header with Copy Button */}
       <div className="flex justify-between items-center bg-gray-800 px-4 py-2 text-sm font-mono">
         <span className="text-gray-300">{language || "plaintext"}</span>
@@ -50,6 +54,7 @@ const MarkdownRenderer = ({ content, color, bg }) => {
   return (
     <ReactMarkdown
       remarkPlugins={[remarkGfm]}
+      rehypePlugins={[rehypeRaw]} // Add this to parse HTML
       components={{
         h1: ({ children }) => <h1 className="text-[45px] font-bold mt-4 mb-2"
             style={{color: color == "light" || bg ? "black" : "white"}}
@@ -121,3 +126,4 @@ const MarkdownRenderer = ({ content, color, bg }) => {
 };
 
 export default MarkdownRenderer;
+

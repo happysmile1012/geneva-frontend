@@ -134,3 +134,48 @@
   background-repeat: no-repeat !important;
   background-size: 100% 100% !important;
 }
+
+/* Image container styling */
+.image-container-field {
+  /* margin: 2rem auto; */
+  max-width: 800px;
+  float: left;
+  width: 300px; 
+  margin-right: 30px;
+  height: 250px;
+}
+
+.image-container-field img {
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  width: 300px;
+  height: 200px !important;
+  transition: transform 0.3s ease;
+}
+
+.image-container-field img:hover {
+  transform: scale(1.02);
+}
+
+.image-caption {
+  display: none;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #666;
+  font-style: italic;
+  text-align: center;
+}
+
+/* Prose styling for HTML content */
+.prose {
+  color: inherit;
+}
+
+.prose img {
+  border-radius: 12px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
