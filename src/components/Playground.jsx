@@ -123,10 +123,7 @@ function Playground({
                             {
                                 !item.close &&
                                 <div className="mx-4 px-4 py-4 shadow-[10px_-10px_black] bg-[#FEFBF0] rounded-[30px]">
-                                    <div>
-                                        <div align="center" className="text-[40px] font-bold">Consensus</div>
-                                        <MarkdownRenderer content={item.text} color={theme} bg={true} />
-                                    </div>
+                                    <MarkdownRenderer content={item.text} color={theme} bg={true} />
                                 </div>
                             }
                             {<div className={`flex flex-col mx-4 dark:text-white text-xl verfied-bottom-modal-${index}`}>
@@ -223,7 +220,7 @@ function Playground({
                                     </div>
                                     <div
                                         className="w-full px-4 py-4 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 justify-items-center">
-                                        {item.product.slice(0, 10).map((product, id) => {
+                                        {item.product.map((product, id) => {
                                             return (
                                                 <ProductSlider
                                                     id={id}
@@ -286,7 +283,7 @@ function Playground({
                             </div>
                             <div
                                 className="w-full px-4 py-4 grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 justify-items-center">
-                                {item.product.slice(0, 10).map((product, id) => {
+                                {item.product.map((product, id) => {
                                     return (
                                         <div
                                             key={id}
