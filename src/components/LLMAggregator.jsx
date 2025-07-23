@@ -63,26 +63,26 @@ const MarkdownRenderer = ({ content, color, bg }) => {
             {children}
           </h1>
         ),
-        strong: ({ children }) => (
-          <div>
-            {children && children.indexOf("Consensus") > -1 ? (
-              <div
-                className="text-[30px] font-bold"
-                style={{ color: color == "light" || bg ? "black" : "white" }}
-                align="center"
-              >
-                {/* Consensus */}
-              </div>
-            ) : (
-              <div className="font-bold">{children}</div>
-            )}
-          </div>
-          // <div
-          //       className="text-[30px] font-bold"
-          //       style={{ color: color == "light" || bg ? "black" : "white" }}
-          //       align="center"
-          //     >{children}</div>
-        ),
+        // strong: ({ children }) => (
+        //   <div>
+        //     {children && children.indexOf("Consensus") > -1 ? (
+        //       <div
+        //         className="text-[30px] font-bold"
+        //         style={{ color: color == "light" || bg ? "black" : "white" }}
+        //         align="center"
+        //       >
+        //         {/* Consensus */}
+        //       </div>
+        //     ) : (
+        //       <div className="font-bold">{children}</div>
+        //     )}
+        //   </div>
+        //   // <div
+        //   //       className="text-[30px] font-bold"
+        //   //       style={{ color: color == "light" || bg ? "black" : "white" }}
+        //   //       align="center"
+        //   //     >{children}</div>
+        // ),
         h2: ({ children }) => (
           <h2
             className="text-4xl font-semibold mt-4 mb-2"
