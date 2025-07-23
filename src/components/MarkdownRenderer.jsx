@@ -206,7 +206,7 @@ const MarkdownRenderer = ({ content, color, bg }) => {
         img: ({ node, ...props }) => {
           if (
             typeof props.src === "string" &&
-            props.src.includes("serpapi.com")
+            props.src.includes("https://")
           ) {
             return (
               <div className="image-container-field py-2">

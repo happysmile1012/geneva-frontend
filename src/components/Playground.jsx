@@ -217,7 +217,7 @@ function Playground({
                             {
                                 !item.close &&
                                 <div className="mx-4 px-4 py-4 shadow-[10px_-10px_black] bg-[#FEFBF0] rounded-[30px]">
-                                    <MarkdownRenderer content={item.text} color={theme} bg={true} />
+                                    <MarkdownRenderer content={item.text.replace("Consensus:", "")} color={theme} bg={true} />
                                     <div
                                         className="text-2xl">Here {item.product.length > 1 ? 'are the products' : 'is the product'}:
                                     </div>
