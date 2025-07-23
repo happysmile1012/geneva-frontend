@@ -8,7 +8,7 @@ import { Copy, Check } from "lucide-react"; // Icons for copy
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
-const CodeBlock = ({ language, children }) => {
+const CodeBlock = ({                                                                                                                                                                                                                                                                                                                                                                                                                                                                             language, children }) => {
   const [copied, setCopied] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const handleCopy = () => {
@@ -22,7 +22,7 @@ const CodeBlock = ({ language, children }) => {
     setIsClient(true);
   }, []);
 
-  return isClient && children.indexOf("serpapi.com/searches") > -1 ? (
+  return isClient && children.indexOf("image-container") > -1 ? (
     <div dangerouslySetInnerHTML={{ __html: children }}></div>
   ) : (
     <div className="relative bg-[#282C34] text-white rounded-lg overflow-hidden my-4">
@@ -62,6 +62,26 @@ const MarkdownRenderer = ({ content, color, bg }) => {
           >
             {children}
           </h1>
+        ),
+        strong: ({ children }) => (
+          <div>
+            {children && children.indexOf("Consensus") > -1 ? (
+              <div
+                className="text-[30px] font-bold"
+                style={{ color: color == "light" || bg ? "black" : "white" }}
+                align="center"
+              >
+                {/* Consensus */}
+              </div>
+            ) : (
+              <div className="font-bold">{children}</div>
+            )}
+          </div>
+          // <div
+          //       className="text-[30px] font-bold"
+          //       style={{ color: color == "light" || bg ? "black" : "white" }}
+          //       align="center"
+          //     >{children}</div>
         ),
         h2: ({ children }) => (
           <h2
@@ -184,7 +204,6 @@ const MarkdownRenderer = ({ content, color, bg }) => {
           </td>
         ),
         img: ({ node, ...props }) => {
-          // Check if this is a serpapi image container
           if (
             typeof props.src === "string" &&
             props.src.includes("serpapi.com")
