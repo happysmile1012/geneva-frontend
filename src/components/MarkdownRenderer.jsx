@@ -22,7 +22,11 @@ const CodeBlock = ({                                                            
     setIsClient(true);
   }, []);
 
-  return isClient && children.indexOf("image-container") > -1 ? (
+  return isClient && (
+    children.indexOf("image-container") || 
+    children.indexOf("answer-content") || 
+    children.indexOf("bottom-image-container")
+  ) > -1 ? (
     <div dangerouslySetInnerHTML={{ __html: children }}></div>
   ) : (
     <div className="relative bg-[#282C34] text-white rounded-lg overflow-hidden my-4">
@@ -62,26 +66,6 @@ const MarkdownRenderer = ({ content, color, bg }) => {
           >
             {children}
           </h1>
-        ),
-        strong: ({ children }) => (
-          <div>
-            {children && children.indexOf("Consensus") > -1 ? (
-              <div
-                className="text-[30px] font-bold"
-                style={{ color: color == "light" || bg ? "black" : "white" }}
-                align="center"
-              >
-                {/* Consensus */}
-              </div>
-            ) : (
-              <div className="font-bold">{children}</div>
-            )}
-          </div>
-          // <div
-          //       className="text-[30px] font-bold"
-          //       style={{ color: color == "light" || bg ? "black" : "white" }}
-          //       align="center"
-          //     >{children}</div>
         ),
         h2: ({ children }) => (
           <h2
@@ -206,7 +190,7 @@ const MarkdownRenderer = ({ content, color, bg }) => {
         img: ({ node, ...props }) => {
           if (
             typeof props.src === "string" &&
-            props.src.includes("https://")
+            props.src.includes("serpapi.com")
           ) {
             return (
               <div className="image-container-field py-2">
