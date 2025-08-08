@@ -1,8 +1,7 @@
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-function TextInput({ askQuestion, inputRef, waitingAnswer }) {
+function TextInput({ askQuestion, inputRef, waitingAnswer, mode, setMode }) {
   const [query, setQuery] = useState("");
-  const [mode, setMode] = useState("consensus");
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter") {

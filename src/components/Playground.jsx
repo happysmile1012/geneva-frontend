@@ -9,6 +9,15 @@ import {
   CrossmintCheckoutProvider,
 } from "@crossmint/client-sdk-react-ui";
 import FadeLoader from "react-spinners/FadeLoader";
+
+const maxValue = (mode) => {
+  if (mode === "consensus") {
+    return 40;
+  } else if (mode === "blaze") {
+    return 10;
+  }
+};
+
 function Playground({
   filterList,
   setFilterList,
@@ -20,6 +29,7 @@ function Playground({
   email,
   loadingContent,
 }) {
+  const [mode, setMode] = useState("consensus");
   const [countDown, setCountDown] = useState(40);
   const [query, setQuery] = useState("");
   const router = useRouter();
@@ -65,13 +75,13 @@ function Playground({
 
   useEffect(() => {
     if (!waitingAnswer) {
-      setCountDown(40);
       return;
     }
+    setCountDown(maxValue(mode));
     const countDownTimer = setInterval(() => {
       setCountDown((prev) => {
         let countDownTmp = prev - 1;
-        if (countDownTmp < 0) countDownTmp = 40;
+        if (countDownTmp < 0) countDownTmp = maxValue(mode);
         return countDownTmp;
       });
     }, 1000);
@@ -847,6 +857,8 @@ function Playground({
             askQuestion={askQuestion}
             inputRef={inputRef}
             waitingAnswer={waitingAnswer}
+            mode={mode}
+            setMode={setMode}
           />
         </div>
       </div>
