@@ -59,7 +59,7 @@ export function LLMAggregator({ email }) {
     "December",
   ];
 
-  const askQuestion = (query) => {
+  const askQuestion = (query, mode) => {
     let chat_id = localStorage.getItem("chat_id");
     const question = query;
     const history = filterList;
@@ -98,6 +98,7 @@ export function LLMAggregator({ email }) {
         chat_id: chat_id,
         question: question,
         history: history,
+        mode: mode,
       }),
     })
       .then((response) => {
@@ -136,6 +137,7 @@ export function LLMAggregator({ email }) {
                 level: response.level,
                 status_report: response.status_report,
                 opinion: response.opinion,
+                mode: response.mode,
                 product: final_answer["products"],
               },
             ]);
@@ -149,6 +151,7 @@ export function LLMAggregator({ email }) {
                 level: response.level,
                 status_report: response.status_report,
                 opinion: response.opinion,
+                mode: response.mode,
                 product: final_answer["products"],
                 verify_top_open: false,
                 verify_bottom_open: false,
@@ -163,6 +166,7 @@ export function LLMAggregator({ email }) {
                 chat_id: chat_id,
                 text: "",
                 level: response.level,
+                mode: response.mode,
                 status_report: response.status_report,
                 opinion: response.opinion,
                 product: JSON.parse(response.answer),
@@ -176,6 +180,7 @@ export function LLMAggregator({ email }) {
                 chat_id: chat_id,
                 text: "",
                 level: response.level,
+                mode: response.mode,
                 status_report: response.status_report,
                 opinion: response.opinion,
                 product: JSON.parse(response.answer),
@@ -193,6 +198,7 @@ export function LLMAggregator({ email }) {
               chat_id: chat_id,
               text: response.answer,
               level: response.level,
+              mode: response.mode,
               status_report: response.status_report,
               opinion: response.opinion,
               product: [],
@@ -206,6 +212,7 @@ export function LLMAggregator({ email }) {
               chat_id: chat_id,
               text: response.answer,
               level: response.level,
+              mode: response.mode,
               status_report: response.status_report,
               opinion: response.opinion,
               product: [],
@@ -290,6 +297,7 @@ export function LLMAggregator({ email }) {
             user_id: item.user_id,
             type: "question",
             chat_id: item.chat_id,
+            mode: item.mode,
             status_report: item.status_report,
             opinion: item.opinion,
             level: item.level,
@@ -304,6 +312,7 @@ export function LLMAggregator({ email }) {
                 user_id: item.user_id,
                 type: item.level,
                 chat_id: item.chat_id,
+                mode: item.mode,
                 status_report: JSON.parse(item.status_report),
                 opinion: item.opinion,
                 level: item.level,
@@ -315,6 +324,7 @@ export function LLMAggregator({ email }) {
                 user_id: item.user_id,
                 type: item.level,
                 chat_id: item.chat_id,
+                mode: item.mode,
                 status_report: JSON.parse(item.status_report),
                 opinion: item.opinion,
                 level: item.level,
@@ -327,6 +337,7 @@ export function LLMAggregator({ email }) {
               user_id: item.user_id,
               type: "answer",
               chat_id: item.chat_id,
+              mode: item.mode,
               status_report: JSON.parse(item.status_report),
               opinion: item.opinion,
               level: item.level,
@@ -460,7 +471,6 @@ export function LLMAggregator({ email }) {
   }, [fingerprint]);
 
   // useEffect(() => {
-    
   // }, [filterList]);
 
   useEffect(() => {
@@ -538,15 +548,23 @@ export function LLMAggregator({ email }) {
             </svg>
           </div>
           <div className="text-center flex flex-col gap-2">
-            <img src="/image/logo.png" alt="logo" className="w-[80] mx-auto" />
-            <span className="text-2xl font-semibold">Geneva</span>
+            <img
+              src="/image/logo.png"
+              alt="logo"
+              className="w-[80] mx-auto mr-[13px]"
+            />
+            <span className="text-2xl font-semibold">Geneva.</span>
           </div>
           <img
             src="/image/editor.svg"
             alt="x"
-            className="w-[24] cursor-pointer"
+            className="w-[24] cursor-pointer ml-[5px]"
             onClick={addNewChatId}
           />
+          <div className="text-xl font-semibold">
+            Collective, <span className="text-blue-500">trusted</span>{" "}
+            intelligence.
+          </div>
           <img
             src="/image/payments.png"
             alt="x"
@@ -778,10 +796,14 @@ export function LLMAggregator({ email }) {
                         <td className="text-[20px] font-500" align="center">
                           {item.status}
                         </td>
-                        <td className="text-[20px] font-500  cursor-pointer" align="center"
+                        <td
+                          className="text-[20px] font-500  cursor-pointer"
+                          align="center"
                           onClick={async () => {
                             try {
-                              await navigator.clipboard.writeText(item.access_key);
+                              await navigator.clipboard.writeText(
+                                item.access_key
+                              );
                               toast.success("Copied to clipboard!");
                             } catch (err) {
                               toast.error("Failed to copy!");
@@ -817,4 +839,3 @@ export function LLMAggregator({ email }) {
     </div>
   );
 }
-

@@ -627,4 +627,8 @@ function ProductSlider({ image, thumbnails, url, linkToProduct, price, id }) {
       </div>
     }
   </div>
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> blaze

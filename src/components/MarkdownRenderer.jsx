@@ -254,4 +254,7 @@ const MarkdownRenderer = ({ content, color, bg }) => {
 };
 
 export default MarkdownRenderer;
+<<<<<<< HEAD
 
+=======
+>>>>>>> blaze
