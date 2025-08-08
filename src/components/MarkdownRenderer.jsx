@@ -8,7 +8,7 @@ import { Copy, Check } from "lucide-react"; // Icons for copy
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 
-const CodeBlock = ({                                                                                                                                                                                                                                                                                                                                                                                                                                                                             language, children }) => {
+const CodeBlock = ({ language, children }) => {
   const [copied, setCopied] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const handleCopy = () => {
@@ -22,11 +22,10 @@ const CodeBlock = ({                                                            
     setIsClient(true);
   }, []);
 
-  return isClient && (
-    children.indexOf("image-container") || 
-    children.indexOf("answer-content") || 
-    children.indexOf("bottom-image-container")
-  ) > -1 ? (
+  return isClient &&
+    (children.indexOf("image-container") ||
+      children.indexOf("answer-content") ||
+      children.indexOf("bottom-image-container")) > -1 ? (
     <div dangerouslySetInnerHTML={{ __html: children }}></div>
   ) : (
     <div className="relative bg-[#282C34] text-white rounded-lg overflow-hidden my-4">
@@ -254,7 +253,3 @@ const MarkdownRenderer = ({ content, color, bg }) => {
 };
 
 export default MarkdownRenderer;
-<<<<<<< HEAD
-
-=======
->>>>>>> blaze
