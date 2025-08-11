@@ -201,7 +201,7 @@ function Playground({
                         />
                       }
                     </div>
-                    {/* {item.verify_top_open && (
+                    {item.verify_top_open && item.mode !== "blaze" && (
                       <div className="[display:ruby] font-semibold mt-4">
                         {item.status_report.map((item, index) => (
                           <div
@@ -231,7 +231,7 @@ function Playground({
                           </div>
                         ))}
                       </div>
-                    )} */}
+                    )}
                     {item.verify_top_open && (
                       <span className="mt-4 text-2xl">
                         <MarkdownRenderer
@@ -334,7 +334,7 @@ function Playground({
                         onClick={() => copyAnswer(item.text)}
                       />
                     </div>
-                    {/* {item.verify_bottom_open && (
+                    {item.verify_bottom_open && item.mode !== "blaze" && (
                       <div className="[display:ruby] font-semibold mt-4">
                         {item.status_report.map((item, index) => (
                           <div
@@ -364,7 +364,7 @@ function Playground({
                           </div>
                         ))}
                       </div>
-                    )} */}
+                    )}
                     {item.verify_bottom_open && (
                       <span
                         className="mt-4 text-2xl"
