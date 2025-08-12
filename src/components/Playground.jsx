@@ -1,5 +1,5 @@
 import MarkdownRenderer from "./MarkdownRenderer";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import TextInput from "./TextInput";
 import { useRouter } from "next/navigation";
@@ -9,14 +9,7 @@ import {
   CrossmintCheckoutProvider,
 } from "@crossmint/client-sdk-react-ui";
 import FadeLoader from "react-spinners/FadeLoader";
-
-const maxValue = (mode) => {
-  if (mode === "consensus") {
-    return 40;
-  } else if (mode === "blaze") {
-    return 10;
-  }
-};
+import Countdown from "./ui/Countdown";
 
 function Playground({
   filterList,
@@ -33,62 +26,49 @@ function Playground({
   const [countDown, setCountDown] = useState(40);
   const [query, setQuery] = useState("");
   const router = useRouter();
-  const copyAnswer = async (text) => {
+
+  const copyAnswer = useCallback(async (text) => {
     try {
       await navigator.clipboard.writeText(text);
       toast.success("Copied to clipboard!");
-    } catch (err) {
+    } catch {
       toast.error("Failed to copy!");
     }
-  };
-  const setVerifyOpen = (index, position) => {
-    let element = document.querySelector(`.verfied-${position}-modal-${index}`);
+  }, []);
 
-    if (position == "top") {
+  const setVerifyOpen = useCallback(
+    (index, position) => {
+      const element = document.querySelector(
+        `.verfied-${position}-modal-${index}`
+      );
       setFilterList((prevList) =>
         prevList.map((item, i) =>
           i === index
-            ? { ...item, verify_top_open: !item.verify_top_open }
+            ? {
+                ...item,
+                verify_top_open:
+                  position === "top"
+                    ? !item.verify_top_open
+                    : item.verify_top_open,
+                verify_bottom_open:
+                  position === "bottom"
+                    ? !item.verify_bottom_open
+                    : item.verify_bottom_open,
+              }
             : item
         )
       );
-    }
-    if (position == "bottom") {
-      setFilterList((prevList) =>
-        prevList.map((item, i) =>
-          i === index
-            ? { ...item, verify_bottom_open: !item.verify_bottom_open }
-            : item
-        )
+      setTimeout(
+        () => element?.scrollIntoView({ behavior: "smooth", block: "start" }),
+        0
       );
-    }
-    setTimeout(() => {
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "start" });
-      }
-    }, 0);
-  };
+    },
+    [setFilterList]
+  );
 
-  const linkToProduct = (url) => {
+  const linkToProduct = useCallback((url) => {
     window.open(url, "_blank");
-  };
-
-  useEffect(() => {
-    if (!waitingAnswer) {
-      return;
-    }
-    setCountDown(maxValue(mode));
-    const countDownTimer = setInterval(() => {
-      setCountDown((prev) => {
-        let countDownTmp = prev - 1;
-        if (countDownTmp < 0) countDownTmp = maxValue(mode);
-        return countDownTmp;
-      });
-    }, 1000);
-    return () => {
-      clearInterval(countDownTimer);
-    };
-  }, [waitingAnswer]);
+  }, []);
 
   return loadingContent ? (
     <div align="center" style={{ marginTop: "200px" }}>
@@ -738,96 +718,7 @@ function Playground({
             );
           }
         })}
-        {waitingAnswer && (
-          <div className="mx-auto flex flex-col flex-1 md:max-w-3xl my-4">
-            <div className="mx-4 py-4 flex items-center text-2xl">
-              <img src="/image/logo.png" alt="logo" className="w-[37] mr-2" />
-              <span style={{ color: theme === "light" ? "dark" : "white" }}>
-                Consulting the council
-              </span>
-              <span className="ml-2 flex">
-                <span
-                  className="dot dot1"
-                  style={{ color: theme === "light" ? "dark" : "white" }}
-                >
-                  .
-                </span>
-                <span
-                  className="dot dot2"
-                  style={{ color: theme === "light" ? "dark" : "white" }}
-                >
-                  .
-                </span>
-                <span
-                  className="dot dot3"
-                  style={{ color: theme === "light" ? "dark" : "white" }}
-                >
-                  .
-                </span>
-              </span>
-              <div className="relative h-[100]">
-                <img
-                  src="/image/counter.png"
-                  alt="logo"
-                  className={`
-                        w-[70px] ml-4 transform 
-                        float-animation
-                        transition-transform duration-300 ease-in-out
-                        `}
-                />
-              </div>
-              <span>{countDown}</span>
-              <style jsx>{`
-                @keyframes float {
-                  0% {
-                    transform: translateY(5);
-                  }
-                  50% {
-                    transform: translateY(-5px);
-                  }
-                  100% {
-                    transform: translateY(5);
-                  }
-                }
-
-                .float-animation {
-                  animation: float 1s ease-in-out infinite;
-                }
-                .dot {
-                  animation: bounce 1.5s infinite;
-                  font-size: 2rem;
-                  line-height: 1;
-                  margin-top: -4px;
-                }
-
-                .dot1 {
-                  animation-delay: 0s;
-                }
-
-                .dot2 {
-                  animation-delay: 0.2s;
-                }
-
-                .dot3 {
-                  animation-delay: 0.4s;
-                }
-
-                @keyframes bounce {
-                  0%,
-                  80%,
-                  100% {
-                    transform: scale(1);
-                    opacity: 0.5;
-                  }
-                  40% {
-                    transform: scale(1.4);
-                    opacity: 1;
-                  }
-                }
-              `}</style>
-            </div>
-          </div>
-        )}
+        <Countdown mode={mode} theme={theme} waiting={waitingAnswer} />
         <div ref={waitingRef}></div>
       </div>
       <div
